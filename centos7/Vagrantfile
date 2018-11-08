@@ -9,7 +9,7 @@ DISK_SIZE = 10
   (1..NODES).each do |i|
     config.vm.define "node#{i}" do |node|
       node.ssh.forward_agent = true
-      node.vm.box = "bento/centos-7.3"
+      node.vm.box = "bento/centos-7.5"
       node.vm.hostname = "node#{i}"
       node.vm.network "private_network", ip: "192.168.60.#{i}0", netmask: "255.255.255.0"
       node.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.#{i}0 node#{i}/' -i /etc/hosts"
