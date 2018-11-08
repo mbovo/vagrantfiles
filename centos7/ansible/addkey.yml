@@ -1,0 +1,26 @@
+---
+
+
+ - hosts: "{{ myhosts }}"
+   become: false
+   tasks:
+     - name: "Ready ssh key"
+       delegate_to: localhost
+       become: false
+       shell: "cat ~/.ssh/id_rsa.pub"  
+       register: ssh_key
+
+     - name: "Add ssh key"
+       lineinfile:
+         dest: "/home/vagrant/.ssh/authorized_keys"
+         line: "{{ssh_key.stdout}}"
+         state: present
+         create: yes
+
+     - name: "Add ssh key (root)"
+       become: true
+       lineinfile:
+         dest: "/root/.ssh/authorized_keys"
+         line: "{{ssh_key.stdout}}"
+         state: present
+         create: yes
