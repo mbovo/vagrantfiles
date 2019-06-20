@@ -1,0 +1,33 @@
+---
+
+- name: "Check selinux state"
+  shell: "sestatus | grep -q enable"
+  register: is_selinux
+  changed_when: "is_swap.rc == 0"
+  failed_when: "is_swap.rc > 1"
+
+- name: "Disabling SELINUX"
+  selinux:
+    state: disabled
+  register: is_selinux_on
+  when:  is_selinux.rc == 0 and not ansible_connection == "docker"
+
+- debug: var=is_selinux_on
+  when:  not ansible_connection == "docker"
+
+- name: "reboot on selinux change"
+  shell: sleep 5;reboot
+  async: 1
+  poll: 0
+  when: is_selinux_on.changed|bool and not ansible_connection == "docker" and not skip_reboot|default('false')
+
+- name: "waiting for host reboot"
+  become: False
+  local_action:
+    module: wait_for
+    host: "{{ inventory_hostname }}"
+    port: 22
+    delay: 10
+    connect_timeout: 60
+    search_regex: "OpenSSH"
+  when: is_selinux_on.changed|bool and not ansible_connection == "docker" and not skip_reboot|default('false')
