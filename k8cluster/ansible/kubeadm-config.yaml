@@ -1,0 +1,13 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: stable
+controlPlaneEndpoint: "192.168.60.100:6443"
+etcd:
+    external:
+        endpoints:
+        - https://192.168.60.101:2379
+        - https://192.168.60.102:2379
+        - https://192.168.60.103:2379
+        caFile: /etc/kubernetes/pki/etcd/ca.crt
+        certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+        keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
