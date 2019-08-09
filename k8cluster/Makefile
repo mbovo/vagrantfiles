@@ -9,7 +9,8 @@ up:		## Startup vagrant nodes
 	vagrant up
 
 cluster:	## Apply to nodes the ansible roles (see inventory.yml)
-	ANSIBLE_ROLES_PATH="./k8i/roles" ansible-playbook -i inventory.yml -u root -b --ssh-extra-args "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" k8i/playbooks/setup.yaml 
+	cp inventory.yml k8i/inventory.yml
+	ANSIBLE_ROLES_PATH="./k8i/roles" ansible-playbook -i ./k8i/inventory.yml -u root -b --ssh-extra-args "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" k8i/playbooks/setup.yaml 
 
 destroy: 	## Destroy vagrant nodes
 	vagrant destroy -f
@@ -17,5 +18,4 @@ destroy: 	## Destroy vagrant nodes
 clean:		## Clean up roles directory
 	rm -rf k8i
 
-all:		## Everything
-	destroy clean roles up cluster
+all: destroy clean roles up cluster

@@ -5,7 +5,7 @@ all:
         192.168.60.100:
     masters:
       hosts:
-        192.168.60.10[1:3]:
+        192.168.60.101:
           node_labels:
             - org.zroot.node=master
             - org.zroot.cluster=test
