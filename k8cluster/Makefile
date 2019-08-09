@@ -4,6 +4,8 @@ roles:
 
 up:
 	vagrant up
+	export ANSIBLE_ROLES_PATH="$(pwd)/k8i/roles"
+	ansible-playbook -i inventory.yml -u root -b k8 k8i/playbooks/setup.yaml
 
 
 destroy: 

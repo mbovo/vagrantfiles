@@ -6,10 +6,11 @@ MASTERS = 1
 NODES = 2
 DISKS = 0
 DISK_SIZE = 10
+BOX = "bento/centos-7.5"
 
     config.vm.define "lb" do |lb|
       lb.ssh.forward_agent = true
-      lb.vm.box = "bento/centos-7.6"
+      lb.vm.box = BOX
       lb.vm.hostname = "loadbalancer"
       lb.vm.network "private_network", ip: "192.168.60.100", netmask: "255.255.255.0"
       lb.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.100 loadbalancer/' -i /etc/hosts"
@@ -29,7 +30,7 @@ DISK_SIZE = 10
   (1..MASTERS).each do |i|
     config.vm.define "master#{i}" do |master|
       master.ssh.forward_agent = true
-      master.vm.box = "bento/centos-7.6"
+      master.vm.box = BOX
       master.vm.hostname = "master#{i}"
       master.vm.network "private_network", ip: "192.168.60.10#{i}", netmask: "255.255.255.0"
       master.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.10#{i} master#{i}/' -i /etc/hosts"
@@ -60,10 +61,10 @@ DISK_SIZE = 10
   (1..NODES).each do |i|
     config.vm.define "node#{i}" do |node|
       node.ssh.forward_agent = true
-      node.vm.box = "bento/centos-7.6"
-      node.vm.hostname = "master#{i}"
+      node.vm.box = BOX
+      node.vm.hostname = "worker#{i}"
       node.vm.network "private_network", ip: "192.168.60.20#{i}", netmask: "255.255.255.0"
-      node.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.10#{i} node#{i}/' -i /etc/hosts"
+      node.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.20#{i} worker#{i}/' -i /etc/hosts"
       node.vm.provider "virtualbox" do |vb|
         vb.name = "vg_k8cluster_node#{i}"
         vb.memory = 1024
