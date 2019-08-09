@@ -1,3 +1,4 @@
 *.box
 *.vdi
 .vagrant
+k8i*

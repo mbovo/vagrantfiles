@@ -2,7 +2,7 @@
 Vagrant.configure("2") do |config|
 
 VAGRANT_ROOT = File.dirname(File.expand_path(__FILE__))
-MASTERS = 3
+MASTERS = 1
 NODES = 2
 DISKS = 0
 DISK_SIZE = 10
@@ -13,7 +13,6 @@ DISK_SIZE = 10
       lb.vm.hostname = "loadbalancer"
       lb.vm.network "private_network", ip: "192.168.60.100", netmask: "255.255.255.0"
       lb.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.100 loadbalancer/' -i /etc/hosts"
-      lb.vm.provision :shell, inline: "yum update; yum install -y epel-release; yum install -y nginx"
       lb.vm.provider "virtualbox" do |vb|
         vb.name = "vg_k8cluster_lb"
         vb.memory = 512
@@ -36,7 +35,7 @@ DISK_SIZE = 10
       master.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.10#{i} master#{i}/' -i /etc/hosts"
       master.vm.provider "virtualbox" do |vb|
         vb.name = "vg_k8cluster_master#{i}"
-        vb.memory = 1480
+        vb.memory = 2048
         vb.cpus = 2
         
         (1..DISKS).each do |k|        
@@ -55,19 +54,6 @@ DISK_SIZE = 10
           }
         end  
 
-        master.vm.provision "ansible" do |docker|
-          docker.playbook = "./ansible/docker.yml"
-          docker.extra_vars = {
-            myhosts: "all"
-          }
-        end
-
-        master.vm.provision "ansible" do |k8|
-          k8.playbook = "./ansible/k8.yml"
-          k8.extra_vars = {
-            myhosts: "all"
-          }
-        end
     end
   end
  
@@ -76,7 +62,7 @@ DISK_SIZE = 10
       node.ssh.forward_agent = true
       node.vm.box = "bento/centos-7.6"
       node.vm.hostname = "master#{i}"
-      node.vm.network "private_network", ip: "192.168.60.10#{i}", netmask: "255.255.255.0"
+      node.vm.network "private_network", ip: "192.168.60.20#{i}", netmask: "255.255.255.0"
       node.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.10#{i} node#{i}/' -i /etc/hosts"
       node.vm.provider "virtualbox" do |vb|
         vb.name = "vg_k8cluster_node#{i}"
@@ -99,19 +85,6 @@ DISK_SIZE = 10
           }
         end  
 
-        node.vm.provision "ansible" do |docker|
-          docker.playbook = "./ansible/docker.yml"
-          docker.extra_vars = {
-            myhosts: "all"
-          }
-        end
-
-        node.vm.provision "ansible" do |k8|
-          k8.playbook = "./ansible/k8.yml"
-          k8.extra_vars = {
-            myhosts: "all"
-          }
-        end
     end
   end
   
