@@ -1,0 +1,73 @@
+
+Vagrant.configure("2") do |config|
+
+VAGRANT_ROOT = File.dirname(File.expand_path(__FILE__))
+MASTERS = 1
+NODES = 2
+DISKS = 0
+DISK_SIZE = 10
+BOX = "bento/centos-7.5"
+
+  (1..MASTERS).each do |i|
+    config.vm.define "master#{i}" do |master|
+      master.ssh.forward_agent = true
+      master.vm.box = BOX
+      master.vm.hostname = "master#{i}"
+      master.vm.network "private_network", ip: "192.168.60.10#{i}", netmask: "255.255.255.0"
+      master.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.10#{i} master#{i}/' -i /etc/hosts"
+      master.vm.provider "virtualbox" do |vb|
+        vb.name = "vg_k8cluster_master#{i}"
+        vb.memory = 2048
+        vb.cpus = 2
+        
+        (1..DISKS).each do |k|        
+          more_disk = File.join(VAGRANT_ROOT, "DATA/master#{i}_disk#{k}.vdi")
+          unless File.exist?(more_disk)
+            vb.customize ['createhd', '--filename', more_disk, '--size', DISK_SIZE * 1024]
+          end
+          vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', k+1, '--device', 0 , '--type', 'hdd', '--medium', more_disk] 
+         end
+      end 
+
+        master.vm.provision "ansible" do |key|
+          key.playbook = "./ansible/addkey.yml"
+          key.extra_vars = {
+            myhosts: "all"
+          }
+        end  
+
+    end
+  end
+ 
+  (1..NODES).each do |i|
+    config.vm.define "node#{i}" do |node|
+      node.ssh.forward_agent = true
+      node.vm.box = BOX
+      node.vm.hostname = "worker#{i}"
+      node.vm.network "private_network", ip: "192.168.60.20#{i}", netmask: "255.255.255.0"
+      node.vm.provision :shell, inline: "sed 's/127\.0\.0\.1.*node.*/192\.168\.60\.20#{i} worker#{i}/' -i /etc/hosts"
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "vg_k8cluster_node#{i}"
+        vb.memory = 1024
+        vb.cpus = 2
+        
+        (1..DISKS).each do |k|        
+          more_disk = File.join(VAGRANT_ROOT, "DATA/node#{i}_disk#{k}.vdi")
+          unless File.exist?(more_disk)
+            vb.customize ['createhd', '--filename', more_disk, '--size', DISK_SIZE * 1024]
+          end
+          vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', k+1, '--device', 0 , '--type', 'hdd', '--medium', more_disk] 
+         end
+      end 
+
+        node.vm.provision "ansible" do |key|
+          key.playbook = "./addkey.yml"
+          key.extra_vars = {
+            myhosts: "all"
+          }
+        end  
+
+    end
+  end
+  
+end
