@@ -2,7 +2,7 @@
 Vagrant.configure("2") do |config|
 
 VAGRANT_ROOT = File.dirname(File.expand_path(__FILE__))
-NODES = 6
+NODES = 1
 DISKS = 1
 DISK_SIZE = 10
 
